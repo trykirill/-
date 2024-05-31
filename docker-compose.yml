@@ -1,0 +1,54 @@
+version: '3.1'
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: grandma_kafka
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    ports:
+      - "9092:9092"
+    networks:
+      - s
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: grandma_zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+    ports:
+      - "2181:2181"
+    networks:
+      - s
+
+  grandma_service:
+    container_name: grandma_service
+    build: 
+      context: ./
+      dockerfile: ./Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+      - kafka
+    ports:
+      - "9000:9000"
+    networks:
+      - s
+  
+  mongo:
+    image: mongo
+    container_name: grandma_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_NAME: "mongo"
+      MONGO_HOST: "localhost"
+    networks:
+      - s
+
+networks:
+  s:
